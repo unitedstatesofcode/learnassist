@@ -38,7 +38,7 @@ async function processWithAI(content, type, source) {
         });
 
         const summaryData = await summaryResponse.json();
-        
+
         if (summaryData.error) {
             throw new Error(`API Error: ${summaryData.error.message}`);
         }
@@ -63,23 +63,23 @@ async function processWithAI(content, type, source) {
         });
 
         const quizData = await quizResponse.json();
-        
+
         if (quizData.error) {
             throw new Error(`API Error: ${quizData.error.message}`);
         }
 
         // Parse results
         const summary = summaryData.choices[0].message.content;
-        
+
         // Parse the quiz JSON, handling potential formatting issues
         let quiz;
         try {
             const quizText = quizData.choices[0].message.content;
             // Extract JSON if it's wrapped in code blocks
-            const jsonMatch = quizText.match(/```json\n([\s\S]*)\n```/) || 
-                            quizText.match(/```\n([\s\S]*)\n```/) ||
-                            quizText.match(/\[([\s\S]*)\]/);
-                            
+            const jsonMatch = quizText.match(/```json\n([\s\S]*)\n```/) ||
+                quizText.match(/```\n([\s\S]*)\n```/) ||
+                quizText.match(/\[([\s\S]*)\]/);
+
             const jsonString = jsonMatch ? jsonMatch[1] : quizText;
             quiz = JSON.parse(jsonString.includes('[') ? jsonString : `[${jsonString}]`);
         } catch (e) {
@@ -100,21 +100,21 @@ async function processWithAI(content, type, source) {
 // Display results
 function displayResults(results) {
     hideLoader();
-    
+
     // Store data globally
     summaryData = results.summary;
     quizData = results.quiz;
-    
+
     // Display summary
     const summaryElement = document.getElementById('summary-content');
     summaryElement.innerHTML = marked.parse(summaryData);
-    
+
     // Generate quiz
     generateQuiz(quizData);
-    
+
     // Show results container
     document.getElementById('result-container').style.display = 'block';
-    
+
     // Scroll to results
     document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
 }
@@ -124,33 +124,33 @@ function generateQuiz(quizData) {
     const quizContainer = document.getElementById('quiz-container');
     quizContainer.innerHTML = '';
     correctAnswers = [];
-    
+
     quizData.forEach((question, questionIndex) => {
         const questionDiv = document.createElement('div');
         questionDiv.className = 'quiz-question';
-        
+
         const questionText = document.createElement('div');
         questionText.className = 'question-text';
         questionText.textContent = `Question ${questionIndex + 1}: ${question.question}`;
-        
+
         const optionsDiv = document.createElement('div');
         optionsDiv.className = 'quiz-options';
-        
+
         // Store correct answer
         correctAnswers.push(question.answer);
-        
+
         question.options.forEach((option, optionIndex) => {
             const optionDiv = document.createElement('div');
             optionDiv.className = 'quiz-option';
             optionDiv.dataset.questionIndex = questionIndex;
             optionDiv.dataset.optionIndex = optionIndex;
             optionDiv.textContent = option;
-            
+
             optionDiv.addEventListener('click', selectOption);
-            
+
             optionsDiv.appendChild(optionDiv);
         });
-        
+
         questionDiv.appendChild(questionText);
         questionDiv.appendChild(optionsDiv);
         quizContainer.appendChild(questionDiv);
@@ -161,11 +161,11 @@ function generateQuiz(quizData) {
 function selectOption(event) {
     const questionIndex = event.target.dataset.questionIndex;
     const optionElements = document.querySelectorAll(`.quiz-option[data-question-index="${questionIndex}"]`);
-    
+
     optionElements.forEach(option => {
         option.classList.remove('selected');
     });
-    
+
     event.target.classList.add('selected');
 }
 
@@ -173,15 +173,15 @@ function selectOption(event) {
 function checkQuiz() {
     let correctCount = 0;
     let totalQuestions = quizData.length;
-    
+
     for (let i = 0; i < totalQuestions; i++) {
         const selectedOption = document.querySelector(`.quiz-option[data-question-index="${i}"].selected`);
-        
+
         if (selectedOption && parseInt(selectedOption.dataset.optionIndex) === correctAnswers[i]) {
             correctCount++;
         }
     }
-    
+
     const resultElement = document.getElementById('quiz-result');
     resultElement.textContent = `You scored ${correctCount} out of ${totalQuestions} (${Math.round((correctCount / totalQuestions) * 100)}%)`;
     resultElement.style.display = 'block';
@@ -193,7 +193,7 @@ function resetQuiz() {
     selectedOptions.forEach(option => {
         option.classList.remove('selected');
     });
-    
+
     document.getElementById('quiz-result').style.display = 'none';
 }
 
@@ -201,7 +201,7 @@ function resetQuiz() {
 function downloadSummary() {
     const filename = 'learning_summary.md';
     const text = summaryData;
-    
+
     downloadFile(filename, text);
 }
 
@@ -209,17 +209,17 @@ function downloadSummary() {
 function downloadQuiz() {
     const filename = 'learning_quiz.txt';
     let text = '';
-    
+
     quizData.forEach((question, index) => {
         text += `Question ${index + 1}: ${question.question}\n\n`;
-        
+
         question.options.forEach((option, optionIndex) => {
             text += `${String.fromCharCode(65 + optionIndex)}) ${option}\n`;
         });
-        
+
         text += `\nCorrect Answer: ${String.fromCharCode(65 + question.answer)}\n\n`;
     });
-    
+
     downloadFile(filename, text);
 }
 
@@ -228,12 +228,12 @@ function downloadFile(filename, text) {
     const element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
     element.setAttribute('download', filename);
-    
+
     element.style.display = 'none';
     document.body.appendChild(element);
-    
+
     element.click();
-    
+
     document.body.removeChild(element);
 }
 
@@ -241,13 +241,13 @@ function downloadFile(filename, text) {
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
     let text = '';
-    
+
     if (elementId === 'summary-content') {
         text = summaryData;
     } else {
         text = element.innerText;
     }
-    
+
     navigator.clipboard.writeText(text).then(() => {
         alert('Content copied to clipboard!');
     }).catch(err => {
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
     document.head.appendChild(script);
-    
+
     script.onload = function() {
         console.log('Marked.js loaded successfully');
     };
